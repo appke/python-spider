@@ -32,6 +32,7 @@ def crawAll(albumId):
 
 # 获取专辑的id
 def crawOneBook():
+	
 	url = 'https://www.ximalaya.com/revision/rank/v1/album/getCategoryRankPage?code=yinyue&pageNum=1&pageSize=100'
 	headers = {
 		"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.103 Safari/537.36"
@@ -44,8 +45,6 @@ def crawOneBook():
 		albumId = album['id']
 		crawAll(albumId)
 
-def crawAllBook():
-	pass
 
 
 if __name__ == "__main__":
