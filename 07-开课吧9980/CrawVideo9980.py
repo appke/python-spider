@@ -23,8 +23,8 @@ class CrawVideo9980:
             os.makedirs(self.decrypt_path)
 
         # 下载那一天的
-        self.down_date = '2019-03-23'
-        self.down_url = 'http://student.kaikeba.com/course/103/study/5638'
+        self.down_date = '2019-01-30'
+        self.down_url = 'http://student.kaikeba.com/course/103/study/4847'
 
 
         self.session = requests.Session()
@@ -45,7 +45,7 @@ class CrawVideo9980:
         return m3u8_obj
 
 
-    def get_Key(self):
+    def get_key(self):
         m3u8_obj = self.get_m3u()
         key_uri = m3u8_obj.keys[0].uri
 
@@ -76,7 +76,7 @@ class CrawVideo9980:
         resp = self.session.get(url, headers=self.headers)
         with open(r'{}-{}.ts'.format(start_name, index), 'wb') as f:
             f.write(resp.content)
-        time.sleep(0.02)
+        time.sleep(2)
 
 
 # -----------------------------------------------------------------
@@ -108,6 +108,7 @@ class CrawVideo9980:
         # AES-128解密
         for fname in file_sort:
             self.decrypt_single_ts(fname, key, iv)
+    
     
     def decrypt_single_ts(self, file_name, key, iv):
         raw = open(file_name, 'rb').read()
@@ -168,16 +169,17 @@ class CrawVideo9980:
         # self.down_m3u(url?)
         
         # ---------------------------------------------------- 先得到key文件
-        # self.get_Key()
+        # self.get_key()
 
         # ---------------------------------------------------- 下载所有的ts文件
         # self.down_ts_all()
 
-        # ---------------------------------------------------- 修改文件名，必须修改文件名
+        # ---------------------------------------------------- 修改文件名，必须修改！
         # self.del_DS_Store(self.down_path)
         # self.chage_fileName() 
 
         # ---------------------------------------------------- 破解所有的ts
+        # ValueError: Data must be padded to 16 byte boundary in CBC mode
         # self.decrypt_all_ts()
 
 
