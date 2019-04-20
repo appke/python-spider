@@ -22,8 +22,8 @@ class CrawVideo9980:
             os.makedirs(self.decrypt_path)
 
         # 下载那一天的
-        self.down_date = '2019-03-15'
-        self.down_url = 'http://student.kaikeba.com/course/103/study/5495'
+        self.down_date = '2019-01-30'
+        self.down_url = 'http://student.kaikeba.com/course/103/study/4847'
 
 
         self.session = requests.Session()
@@ -103,14 +103,8 @@ class CrawVideo9980:
     
     def decrypt_single_ts(self, file_name, key, iv):
         raw = open(file_name, 'rb').read()
-        # data必须是16的整数倍 ValueError: Data must be padded to 16 byte boundary in CBC mode
-        # pad_len = AES.block_size - len(raw)%AES.block_size
-        # if pad_len != AES.block_size:
-        #     print(pad_len)
-        #     data = raw + bytes([0] * pad_len) # bytes([pad_len])*pad_len
-        
         data = raw
-        # print("len(data)%16: "+len(data)%16)
+
         cipher = AES.new(key, AES.MODE_CBC, iv=iv)
         plain_data = cipher.decrypt(data)
 
@@ -147,11 +141,11 @@ class CrawVideo9980:
         base_path = os.path.split(self.final_path)[0]
         m3u_path = os.path.join(base_path, "%s.m3u"%(self.down_date))
         key_path = os.path.join(base_path, "%s.key"%(self.down_date))
-        os.remove(m3u_path)
         os.remove(key_path)
+        os.remove(m3u_path)
 
-        print(m3u_path + "，清理完成！")
         print(key_path + "，清理完成！")
+        print(m3u_path + "，清理完成！")
 
 
     def del_DS_Store(self, path):
@@ -169,7 +163,7 @@ class CrawVideo9980:
     def main(self):
         # ---------------------------------------------------- 下载m3u文件 ---- 暂时手动下载 2019-04-10.m3u
         # self.down_m3u(url?)
-        
+
         # ---------------------------------------------------- 先得到key文件
         # self.get_key()
 
@@ -180,9 +174,10 @@ class CrawVideo9980:
         # self.del_DS_Store(self.down_path)
         # self.decrypt_all_ts()
 
+
         # ---------------------------------------------------- 合并文件，转为mp4
-        # self.del_DS_Store(self.decrypt_path)
-        # self.concat_ts()
+        self.del_DS_Store(self.decrypt_path)
+        self.concat_ts()
 
         # ---------------------------------------------------- 最后删除加密的ts、破解的ts、m3u、key文件
         # self.clear_ts_file()

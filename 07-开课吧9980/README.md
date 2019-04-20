@@ -1,50 +1,113 @@
-# 1024Video-Crawler
-A python crawler for 1024 jap video from a mystery website. (No url)
+- 参考：[在线流视频m3u8文件解析，AES-128 - 简书](https://www.jianshu.com/p/dee16407a776)
 
-用python编写爬虫抓取你懂得日本小电影（我是不会说出网址的……）
+###下载视频
+```
+# 下载m3u文件 ---- 暂时手动下载 2019-04-10.m3u
+# self.down_m3u(url?)
 
-### 环境
-python 3.6
+# 先得到key文件
+# self.get_key()
 
-### 爬虫工具
-依旧采用了requests+BeautfulSoup的组合。request负责采集网络信息，BeautifulSoup负责进行信息处理
+# 再下载所有的ts文件
+self.down_ts_all()
 
-### 原因与目的
-该小项目的主要目的是熟悉python语言，练习网络爬虫的使用，无其他目的
+# 破解所有的ts ？？？会出错的，解码了DS_Store文件
+# self.del_DS_Store(self.down_path)
+# self.decrypt_all_ts()
 
-选取该网站的原因主要是考虑到这类网站对于视频的保护措施相对较弱。尝试解析过国内视频网站（如爱奇艺、优酷）等网站，受到会员制度等各种限制，抓取难度较大，
-因此暂时采用该网站进行采集训练。
+# 合并文件，转为mp4
+# self.del_DS_Store(self.decrypt_path)
+# self.concat_ts()
 
-在代码中已经将相应url删除。
+# 最后删除加密的ts、破解的ts、m3u、key文件
+# self.clear_ts_file()
+```
 
-### 过程与问题
-使用chrome浏览器开发者工具对于网站进行分析，发现该网站将视频分为了很小的片段进行传输，并且传输url隐藏在m3u8文件中，因此需要在开发者工具栏的network中
-获取真正的url，下载得到众多.ts文件，然后使用 copy/b 命令进行合并。 为了保证合并顺序，需要在下载.ts文件时注意一下命名方式。为了使程序最大限度的自动化，
-减少人工操作，我将执行命令行语句也写入到了代码当中。下载完成后，自动合并，将最终文件放入指定文件夹，并将使用过的.ts文件片段删除。
 
-现在，使用这个crawler下载一部1024小电影（在该指定网站上），需要提供
-1. 该电影的url（这个不能再省略了吧……）
-2. 加载视频片段时发出 GET 请求的真实url（或者headers也有包含）
+- 解析m3u8文件
 
-第一个url我们直接在浏览器复制就好，这个没什么问题。
+```
+def get_m3u(self):
+    m3u8_obj = m3u8.load('../{}.m3u'.format(self.down_date))
+    return m3u8_obj
+```
 
-真正的问题来了，如何让程序自动获得第二个url？ 我在相应页面的源代码中尝试过多种形式的查找，均没有找到相关信息，因此问题转换成了：如何使用python
-监听网页的请求（视频有播放按钮，应该可以用selenium模拟点击），获取headers或者url信息（抓包？）。 我，，，，，目前还没有找到解决办法/(ㄒoㄒ)/~~
+
+
+- 下载ts文件
+
+```
+def kaiKeBaBlock(self, key_url):      
+    alter_param = 'cd12-c120'
+    # alter_param = 'cd12-ccd1-2'
+    base_url = 'https://{}.play.bokecc.com/flvs/7488FF1B7810DE53/{}/'.format(alter_param, self.down_date)
+    url = base_url + key_url
+
+    index = re.search(r'video=(\d*)', key_url).group(1) 
+    filename = index.zfill(4)
+
+    resp = self.session.get(url, headers=self.headers)
+    with open(r'{}.ts'.format(filename), 'wb') as f:
+        f.write(resp.content)
+    print('下载完成-----第{}段'.format(index))
+    time.sleep(0.2)
+```
+
+
+
+
+- 破解AES-128
+
+```
+def decrypt_single_ts(self, file_name, key, iv):
+    raw = open(file_name, 'rb').read()
+    data = raw
+
+    cipher = AES.new(key, AES.MODE_CBC, iv=iv)
+    plain_data = cipher.decrypt(data)
+
+    open('{0}/{1}'.format(self.decrypt_path, file_name), 'wb').write(plain_data)
+    print('file: ' + file_name + '\tsucceed!')
+```
+
+
+
+- 合并下载ts文件
+
+```
+def concat_ts(self): 
+    # 指定输出文件名称
+    output_file = os.path.join(self.final_path, '{}.mp4'.format(self.down_date))
+    # 使用ffmpeg将ts合并为mp4
+    os.chdir(self.decrypt_path)
+    print("开始合并文件 ··········")
+    os.system('cat *.ts > %s.ts'%(self.down_date))
+    command = 'ffmpeg -i "%s.ts" -acodec copy -vcodec copy -absf aac_adtstoasc %s'%(self.down_date, output_file)
+    # 指行命令
+    os.system(command)
+    print("最后转换成 {}.mp4\t完成！".format(self.down_date))
+```
+
+
+
+#### 待解决问题
+
+- 多线程
+- 得到真实的.mu38文件地址？
+
+
+
+#### 文件夹说明
+
+- `DOWN` 下载用`aes-128`加密的ts
+- `DECRYPT` 破解后的ts文件
+- `FINAL` 最终生mp4
+
+
 
 ### 效果图
-![image](./asserts/001.jpg)
-![image](./asserts/02.jpg)
 
------
+![](../images/07-video.png)
 
-## 2017.12.25更新
- - 新增了动态代理
- - 新增了m3u8解析，无需再使用Chrome开发者工具
+![ ](../images/07-concat.png)
 
-今天整理项目适合，又看到了这个将近半年前的项目，想到上面提到的问题，始终觉得像是心病，不解决了感觉不舒服。
-尝试了browsermobProxy嗅探网页network traffic信息，未果，毕竟是基于java的工具，对于python不少很友好
-最终使用m3u8的python解析包对于m3u8进行了很好的解析，获得了视频真实地址，并且对于之前的视频片段数目的计算方式有了更好的计算方式。
-
-测试过程中IP被封锁，不得不使用了动态代理，问题驱动是最好的实践。
-
-具体实现过程参见CSDN传送门：http://blog.csdn.net/JosephPai/article/details/78897370

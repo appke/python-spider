@@ -14,7 +14,7 @@
 
 ### VIP视频爬取
 
-- 开课吧
+- [在线流视频m3u8文件解析，AES-128 - 简书](https://www.jianshu.com/p/dee16407a776)
 
 
 
