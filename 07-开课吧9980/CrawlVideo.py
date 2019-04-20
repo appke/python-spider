@@ -14,7 +14,7 @@ class ViedeoCrawler():
         self.down_path = r"F:\Spider\VideoSpider\DOWN"
         self.final_path = r"F:\Spider\VideoSpider\FINAL"
         try:
-            self.name = re.findall(r'/[A-Za-z]*-[0-9]*',self.url)[0][1:]
+            self.name = re.findall(r'/[A-Za-z]*-[0-9]*', self.url)[0][1:]
         except:
             self.name = "uncensord"
         self.headers = {

@@ -22,8 +22,8 @@ class CrawVideo9980:
             os.makedirs(self.decrypt_path)
 
         # 下载那一天的
-        self.down_date = '2019-03-16'
-        self.down_url = 'http://student.kaikeba.com/course/103/study/5550'
+        self.down_date = '2019-03-15'
+        self.down_url = 'http://student.kaikeba.com/course/103/study/5495'
 
 
         self.session = requests.Session()
@@ -112,7 +112,7 @@ class CrawVideo9980:
         data = raw
         # print("len(data)%16: "+len(data)%16)
         cipher = AES.new(key, AES.MODE_CBC, iv=iv)
-        plain_data = cipher.decrypt(data)[:len(raw)]
+        plain_data = cipher.decrypt(data)
 
         open('{0}/{1}'.format(self.decrypt_path, file_name), 'wb').write(plain_data)
         print('file: ' + file_name + '\tsucceed!')
@@ -129,7 +129,8 @@ class CrawVideo9980:
         command = 'ffmpeg -i "%s.ts" -acodec copy -vcodec copy -absf aac_adtstoasc %s'%(self.down_date, output_file)
         # 指行命令
         os.system(command)
-        print("文件转成mp4完成！")
+        print("最后转换成 {}.mp4\t完成！".format(self.down_date))
+
 
 
     def clear_ts_file(self): 
@@ -172,85 +173,21 @@ class CrawVideo9980:
         # ---------------------------------------------------- 先得到key文件
         # self.get_key()
 
-        # ---------------------------------------------------- 下载所有的ts文件
+        # ---------------------------------------------------- 再下载所有的ts文件
         # self.down_ts_all()
-
 
         # ---------------------------------------------------- 破解所有的ts ？？？会出错的，解码了DS_Store文件
         # self.del_DS_Store(self.down_path)
         # self.decrypt_all_ts()
 
-
         # ---------------------------------------------------- 合并文件，转为mp4
         # self.del_DS_Store(self.decrypt_path)
         # self.concat_ts()
 
-
         # ---------------------------------------------------- 最后删除加密的ts、破解的ts、m3u、key文件
-        self.clear_ts_file()
+        # self.clear_ts_file()
 
-
-
-    
-
-
-        # bsObj = BeautifulSoup(html, 'lxml')
-        # realAdr = bsObj.find('video', class_="vsc-initialized").find("source")['src']
-        # print(realAdr)
-
-        # realAdr = 'https://cd12-ccd1-2.play.bokecc.com/flvs/7488FF1B7810DE53/2019-04-10/1CD46E78FE2AB8F29C33DC5901307461-90.m3u8?t=1555068309&key=854F21AA3AACF4D7D91CEBB9A4B181EE&tpl=10&tpt=112'
-        # print(requests.get(realAdr, headers=self.headers).content)
-
-        # duration = bsObj.find('meta', {'property': "video:duration"})['content'].replace("\"", "")
-        # limit = int(duration) // 10 + 3
-
-        # # ip_list = self.get_ip_list()
-        # # proxies = self.get_random_ip(ip_list)
-
-        # uriList = self.get_uri_from_m3u8(realAdr)
-        # print(uriList)
-
-        # i = 1   # count
-        # for key in uriList:
-        #     if i%50==0:
-        #         print("休眠10s")
-        #         time.sleep(10)
-        #     if i%120==0:
-        #         print("更换代理IP")
-        #         proxies = self.get_random_ip(ip_list)
-        #     try:
-        #         resp = requests.get(key.uri, headers = self.headers, proxies=proxies)
-        #     except Exception as e:
-        #         print(e)
-        #         return
-        #     if i < 10:
-        #         name = ('clip00%d.ts' % i)
-        #     elif i > 100:
-        #         name = ('clip%d.ts' % i)
-        #     else:
-        #         name = ('clip0%d.ts' % i)
-        #     with open(name,'wb') as f:
-        #         f.write(resp.content)
-        #         print('正在下载clip%d' % i)
-        #     i = i+1
-        # print("下载完成！总共耗时 %d s" % (time.time()-start_time))
-        # print("接下来进行合并……")
-        # os.system('copy/b %s\\*.ts %s\\%s.ts' % (self.down_path, self.final_path, self.name))
-        # print("合并完成，请您欣赏！")
-
-
-        # y = input("请检查文件完整性，并确认是否要删除碎片源文件？(y/n)")
-        # if y=='y':
-        #     files = os.listdir(self.down_path)
-        #     for filena in files:
-        #         del_file = self.down_path + '\\' + filena
-        #         os.remove(del_file)
-        #     print("碎片文件已经删除完成")
-        # else:
-        #     print("不删除，程序结束。")
 
 
 craw = CrawVideo9980()
 craw.main()
-
-
