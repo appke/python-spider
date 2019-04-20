@@ -4,7 +4,6 @@ import os, sys, time
 import re
 import m3u8
 from Crypto.Cipher import AES
-from Crypto.Util.Padding import pad
 from binascii import unhexlify
 
 class CrawVideo9980:
@@ -23,14 +22,14 @@ class CrawVideo9980:
             os.makedirs(self.decrypt_path)
 
         # 下载那一天的
-        self.down_date = '2019-01-30'
-        self.down_url = 'http://student.kaikeba.com/course/103/study/4847'
+        self.down_date = '2019-03-16'
+        self.down_url = 'http://student.kaikeba.com/course/103/study/5550'
 
 
         self.session = requests.Session()
         self.headers = {
             'Origin': 'http://student.kaikeba.com',
-            'Referer': str(self.down_url),
+            'Referer': str(self.down_url), #获得key必须要
             'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.103 Safari/537.36'
         }
 
@@ -67,36 +66,28 @@ class CrawVideo9980:
 
 
     def kaiKeBaBlock(self, key_url):
-        index = re.search(r'video=(\d*)', key_url).group(1)
-        start_name = re.search(r'^(.*)-', key_url).group(1)
-        print('开始下载-----第{}段'.format(index))
-        base_url = 'https://cd12-ccd1-2.play.bokecc.com/flvs/7488FF1B7810DE53/{}/'.format(self.down_date)
+        #00F22A22F8D026AE9C33DC5901307461-90.ts?video=0&t=1555743583&key=76D239FB4B4D03DDF84128E8AE2525EF&tpl=10&tpt=112       
+        alter_param = 'cd12-c120'
+        # alter_param = 'cd12-ccd1-2'
+        base_url = 'https://{}.play.bokecc.com/flvs/7488FF1B7810DE53/{}/'.format(alter_param, self.down_date)
         url = base_url + key_url
 
-        resp = self.session.get(url, headers=self.headers)
-        with open(r'{}-{}.ts'.format(start_name, index), 'wb') as f:
-            f.write(resp.content)
-        time.sleep(2)
+        index = re.search(r'video=(\d*)', key_url).group(1) 
+        filename = index.zfill(4)
 
+        resp = self.session.get(url, headers=self.headers)
+        with open(r'{}.ts'.format(filename), 'wb') as f:
+            f.write(resp.content)
+        print('下载完成-----第{}段'.format(index))
+        time.sleep(0.2)
 
 # -----------------------------------------------------------------
-    def chage_fileName(self):
-        file_list = os.listdir(self.down_path)
-        # 缺失的前面补0
-        for file in file_list:
-            names = file.split('-')
-            newName = names[1].zfill(7)
-            os.rename(file, newName)
-        print("文件名修改完成！")
-
-
-
-    def decrypt_all_ts(self): 
+    def decrypt_all_ts(self):
         # 读取ts文件夹下所有的ts文件
         file_list = os.listdir(self.down_path)
         # 对文件进行排序
-        file_list.sort()
-        file_sort = [filename for filename in file_list]
+        # file_list.sort()
+        # file_sort = [filename for filename in file_list]
 
         m3u8_obj = self.get_m3u()
         iv_str = m3u8_obj.keys[0].iv
@@ -106,34 +97,42 @@ class CrawVideo9980:
         key = open('../{}.key'.format(self.down_date), 'rb').read()
 
         # AES-128解密
-        for fname in file_sort:
+        for fname in file_list:
             self.decrypt_single_ts(fname, key, iv)
     
     
     def decrypt_single_ts(self, file_name, key, iv):
         raw = open(file_name, 'rb').read()
-        data = raw #raw[16:]
-        aesObjc = AES.new(key, AES.MODE_CBC, iv)
-        plain_data = aesObjc.decrypt(data)
+        # data必须是16的整数倍 ValueError: Data must be padded to 16 byte boundary in CBC mode
+        # pad_len = AES.block_size - len(raw)%AES.block_size
+        # if pad_len != AES.block_size:
+        #     print(pad_len)
+        #     data = raw + bytes([0] * pad_len) # bytes([pad_len])*pad_len
+        
+        data = raw
+        # print("len(data)%16: "+len(data)%16)
+        cipher = AES.new(key, AES.MODE_CBC, iv=iv)
+        plain_data = cipher.decrypt(data)[:len(raw)]
 
         open('{0}/{1}'.format(self.decrypt_path, file_name), 'wb').write(plain_data)
         print('file: ' + file_name + '\tsucceed!')
 
 
 # -----------------------------------------------------------------
-    def concat_ts(self):
+    def concat_ts(self): 
         # 指定输出文件名称
         output_file = os.path.join(self.final_path, '{}.mp4'.format(self.down_date))
         # 使用ffmpeg将ts合并为mp4
         os.chdir(self.decrypt_path)
+        print("开始合并文件 ··········")
         os.system('cat *.ts > %s.ts'%(self.down_date))
         command = 'ffmpeg -i "%s.ts" -acodec copy -vcodec copy -absf aac_adtstoasc %s'%(self.down_date, output_file)
         # 指行命令
         os.system(command)
-        print("文件合并，转为mp4完成！")
-    
+        print("文件转成mp4完成！")
 
-    def clear_ts_file(self):
+
+    def clear_ts_file(self): 
         down_list = os.listdir(self.down_path)
         for fname in down_list:
             os.remove(self.down_path+ '/' +fname)
@@ -153,6 +152,7 @@ class CrawVideo9980:
         print(m3u_path + "，清理完成！")
         print(key_path + "，清理完成！")
 
+
     def del_DS_Store(self, path):
         # shell命令查找.DS_Store文件
         os.system(r'find %s -name .DS_Store' %path)
@@ -164,6 +164,7 @@ class CrawVideo9980:
         print('-'*80)
     
 
+
     def main(self):
         # ---------------------------------------------------- 下载m3u文件 ---- 暂时手动下载 2019-04-10.m3u
         # self.down_m3u(url?)
@@ -174,12 +175,9 @@ class CrawVideo9980:
         # ---------------------------------------------------- 下载所有的ts文件
         # self.down_ts_all()
 
-        # ---------------------------------------------------- 修改文件名，必须修改！
-        # self.del_DS_Store(self.down_path)
-        # self.chage_fileName() 
 
-        # ---------------------------------------------------- 破解所有的ts
-        # ValueError: Data must be padded to 16 byte boundary in CBC mode
+        # ---------------------------------------------------- 破解所有的ts ？？？会出错的，解码了DS_Store文件
+        # self.del_DS_Store(self.down_path)
         # self.decrypt_all_ts()
 
 
@@ -189,43 +187,12 @@ class CrawVideo9980:
 
 
         # ---------------------------------------------------- 最后删除加密的ts、破解的ts、m3u、key文件
-        # self.clear_ts_file()
+        self.clear_ts_file()
 
 
-
-    # def get_ip_list(self):
-    #     print("正在获取代理列表...")
-    #     url = 'http://www.xicidaili.com/nn/'
-    #     html = requests.get(url=url, headers=self.headers).text
-    #     soup = BeautifulSoup(html, 'lxml')
-    #     ips = soup.find(id='ip_list').find_all('tr')
-    #     ip_list = []
-    #     for i in range(1, len(ips)):
-    #         ip_info = ips[i]
-    #         tds = ip_info.find_all('td')
-    #         ip_list.append(tds[1].text + ':' + tds[2].text)
-    #     print("代理列表抓取成功.")
-    #     return ip_list
-
-
-    # def get_random_ip(self,ip_list):
-    #     print("正在设置随机代理...")
-    #     proxy_list = []
-    #     for ip in ip_list:
-    #         proxy_list.append('http://' + ip)
-    #     proxy_ip = random.choice(proxy_list)
-    #     proxies = {'http': proxy_ip}
-    #     print("代理设置成功.")
-    #     return proxies
 
     
 
-    # def run(self):
-    #     print("Start!")
-    #     start_time = time.time()
-    #     os.chdir(self.down_path)
-        # html = requests.get(self.url,  headers=self.headers).text
-        # print(html)
 
         # bsObj = BeautifulSoup(html, 'lxml')
         # realAdr = bsObj.find('video', class_="vsc-initialized").find("source")['src']
