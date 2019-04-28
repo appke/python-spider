@@ -23,7 +23,7 @@ class CrawVideo9980:
 
         # 下载那一天的
         self.down_date = '2019-01-30'
-        self.down_url = 'http://student.kaikeba.com/course/103/study/4847'
+        self.down_url = 'http://student.kaikeba.com/course/103/study/5037'
 
 
         self.session = requests.Session()
@@ -34,6 +34,35 @@ class CrawVideo9980:
         }
 
 
+    def main(self):
+        # ---------------------------------------------------- 下载m3u文件 ---- 暂时手动下载 2019-04-10.m3u
+        # self.down_m3u(url?)
+
+        # ---------------------------------------------------- 先得到key文件
+        # self.get_key()
+
+        # ---------------------------------------------------- 再下载所有的ts文件
+        # alter_param = 'cd12-ccd1-2'
+        # alter_param = 'cd12-c120'
+        # self.down_ts_all(alter_param)
+
+
+        # ---------------------------------------------------- 破解所有的ts ？？？会出错的，解码了DS_Store文件？
+        # self.del_DS_Store(self.down_path)
+        # self.decrypt_all_ts()
+
+        # ---------------------------------------------------- 合并文件，转为mp4
+        # self.del_DS_Store(self.decrypt_path)
+        # self.concat_ts()
+
+
+        # ---------------------------------------------------- 最后删除加密的ts、破解的ts、m3u、key文件
+        # self.clear_ts_file() 
+
+
+
+
+# -----------------------------------------------------------------
     def down_m3u(self, url):
         # resp = self.session.get(url, headers=self.headers)
         # print(resp.content)
@@ -56,26 +85,21 @@ class CrawVideo9980:
 
 
 # -----------------------------------------------------------------
-    def down_ts_all(self):
+    def down_ts_all(self, alter_param):
+        base_url = 'https://{}.play.bokecc.com/flvs/7488FF1B7810DE53/{}/'.format(alter_param, self.down_date)
+
         m3u8_obj = self.get_m3u()
         uri_list = m3u8_obj.segments
-
         for key in uri_list:
-            key_url = key.uri
-            self.kaiKeBaBlock(key_url)
+            down_url = base_url + key.uri
+            self.kaiKeBaBlock(down_url)
 
 
-    def kaiKeBaBlock(self, key_url):
-        #00F22A22F8D026AE9C33DC5901307461-90.ts?video=0&t=1555743583&key=76D239FB4B4D03DDF84128E8AE2525EF&tpl=10&tpt=112       
-        alter_param = 'cd12-c120'
-        # alter_param = 'cd12-ccd1-2'
-        base_url = 'https://{}.play.bokecc.com/flvs/7488FF1B7810DE53/{}/'.format(alter_param, self.down_date)
-        url = base_url + key_url
-
-        index = re.search(r'video=(\d*)', key_url).group(1) 
+    def kaiKeBaBlock(self, down_url):
+        index = re.search(r'video=(\d*)', down_url).group(1) 
         filename = index.zfill(4)
 
-        resp = self.session.get(url, headers=self.headers)
+        resp = self.session.get(down_url, headers=self.headers)
         with open(r'{}.ts'.format(filename), 'wb') as f:
             f.write(resp.content)
         print('下载完成-----第{}段'.format(index))
@@ -118,7 +142,7 @@ class CrawVideo9980:
         output_file = os.path.join(self.final_path, '{}.mp4'.format(self.down_date))
         # 使用ffmpeg将ts合并为mp4
         os.chdir(self.decrypt_path)
-        print("开始合并文件 ··········")
+        print("正在合并\t{}.ts文件 ··········".format(self.down_date))
         os.system('cat *.ts > %s.ts'%(self.down_date))
         command = 'ffmpeg -i "%s.ts" -acodec copy -vcodec copy -absf aac_adtstoasc %s'%(self.down_date, output_file)
         # 指行命令
@@ -157,30 +181,6 @@ class CrawVideo9980:
                     os.remove(os.path.join(root, name))
                     print ('删除文件: ' + os.path.join(root, name))
         print('-'*80)
-    
-
-
-    def main(self):
-        # ---------------------------------------------------- 下载m3u文件 ---- 暂时手动下载 2019-04-10.m3u
-        # self.down_m3u(url?)
-
-        # ---------------------------------------------------- 先得到key文件
-        # self.get_key()
-
-        # ---------------------------------------------------- 再下载所有的ts文件
-        # self.down_ts_all()
-
-        # ---------------------------------------------------- 破解所有的ts ？？？会出错的，解码了DS_Store文件
-        # self.del_DS_Store(self.down_path)
-        # self.decrypt_all_ts()
-
-
-        # ---------------------------------------------------- 合并文件，转为mp4
-        self.del_DS_Store(self.decrypt_path)
-        self.concat_ts()
-
-        # ---------------------------------------------------- 最后删除加密的ts、破解的ts、m3u、key文件
-        # self.clear_ts_file()
 
 
 
