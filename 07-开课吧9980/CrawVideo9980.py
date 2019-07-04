@@ -23,7 +23,7 @@ class CrawVideo9980:
 
         # 下载那一天的
         self.down_date = '2019-01-30'
-        self.down_url = 'http://student.kaikeba.com/course/103/study/5037'
+        self.down_url = 'http://student.kaikeba.com/course/82/study/4615'
 
 
         self.session = requests.Session()
@@ -38,26 +38,28 @@ class CrawVideo9980:
         # ---------------------------------------------------- 下载m3u文件 ---- 暂时手动下载 2019-04-10.m3u
         # self.down_m3u(url?)
 
+
+        # ---------------------------------------------------- 最后删除加密的ts、破解的ts、m3u、key文件
+        # self.clear_ts_file()  
+
         # ---------------------------------------------------- 先得到key文件
-        # self.get_key()
+        # self.get_key() 
 
         # ---------------------------------------------------- 再下载所有的ts文件
         # alter_param = 'cd12-ccd1-2'
-        # alter_param = 'cd12-c120'
+        # # alter_param = 'cd12-c120'
+        # alter_param = 'cd15-c120-1'
         # self.down_ts_all(alter_param)
 
 
         # ---------------------------------------------------- 破解所有的ts ？？？会出错的，解码了DS_Store文件？
         # self.del_DS_Store(self.down_path)
-        # self.decrypt_all_ts()
+        # self.decrypt_all_ts() 
+
 
         # ---------------------------------------------------- 合并文件，转为mp4
         # self.del_DS_Store(self.decrypt_path)
         # self.concat_ts()
-
-
-        # ---------------------------------------------------- 最后删除加密的ts、破解的ts、m3u、key文件
-        # self.clear_ts_file() 
 
 
 
@@ -110,8 +112,8 @@ class CrawVideo9980:
         # 读取ts文件夹下所有的ts文件
         file_list = os.listdir(self.down_path)
         # 对文件进行排序
-        # file_list.sort()
-        # file_sort = [filename for filename in file_list]
+        file_list.sort()
+        file_sort = [filename for filename in file_list]
 
         m3u8_obj = self.get_m3u()
         iv_str = m3u8_obj.keys[0].iv
